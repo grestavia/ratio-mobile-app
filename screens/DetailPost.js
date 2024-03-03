@@ -20,7 +20,7 @@ const DetailPost = ({ route }) => {
             } catch (error) {
                 console.error('Error fetching images:', error);
             } finally {
-                setIsLoading(false); // Set isLoading to false when data fetching is complete
+                setIsLoading(false);
             }
         };
         fetchImages();
