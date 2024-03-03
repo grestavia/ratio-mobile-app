@@ -19,6 +19,7 @@
     "react": "18.2.0",
     "react-icons": "^5.0.1",
     "react-native": "0.73.4",
+    "react-native-animatable": "^1.4.0",
     "react-native-elements": "^3.4.3",
     "react-native-fs": "^2.20.0",
     "react-native-masonry-list": "^2.16.1"

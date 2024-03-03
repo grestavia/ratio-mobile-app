@@ -3,6 +3,7 @@ import { ScrollView, View, Text, TextInput, Image, TouchableOpacity, ActivityInd
 import axios from 'axios';
 import { Icon } from 'react-native-elements'
 import { useNavigation } from '@react-navigation/native';
+import * as Animatable from 'react-native-animatable';
 
 export default function Home() {
     const [search, setSearch] = useState('');
@@ -26,7 +27,7 @@ export default function Home() {
                 },
             });
             setImages(response.data.data);
-            setImageDimensions([]); // Reset dimensions when fetching new images
+            setImageDimensions([]);
         } catch (error) {
             console.error('Error fetching images:', error);
         } finally {
@@ -70,13 +71,30 @@ export default function Home() {
             return leftImages.map((item, index) => {
                 const imageUri = process.env.API_URL + '/files/images/photos/' + item.locationFile;
                 return (
-                    <TouchableOpacity key={index} style={styles.imageContainer} onPress={() => navigateToDetail(item.id)}>
-                        <Image
-                            source={{ uri: imageUri }}
-                            style={[styles.image, imageDimensions[index] && { aspectRatio: imageDimensions[index].width / imageDimensions[index].height }]}
-                            resizeMode="contain" />
-                        <Text>{item.title}</Text>
-                    </TouchableOpacity>
+                    <Animatable.View
+                        key={index}
+                        style={styles.imageContainer}
+                        animation="fadeIn"
+                        duration={1000}
+                        delay={index * 400}
+                    >
+                        <TouchableOpacity activeOpacity={0.7} onPress={() => navigateToDetail(item.id)}>
+                            <Animatable.Image
+                                source={{ uri: imageUri }}
+                                style={[styles.image, imageDimensions[index] && { aspectRatio: imageDimensions[index].width / imageDimensions[index].height }]}
+                                resizeMode="contain"
+                                animation="slideInUp"
+                                duration={500}
+                            />
+                            <View style={styles.userContainer}>
+                                <Image source={{ uri: process.env.API_URL + '/files/images/profiles/' + item.user.photoUrl }} style={styles.userImage} />
+                                <View>
+                                    <Text style={styles.title}>{item.user.fullName}</Text>
+                                    <Text style={styles.subtitle}>@{item.user.username}</Text>
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                    </Animatable.View>
                 );
             });
         }
@@ -89,13 +107,30 @@ export default function Home() {
             return rightImages.map((item, index) => {
                 const imageUri = process.env.API_URL + '/files/images/photos/' + item.locationFile;
                 return (
-                    <TouchableOpacity key={index} style={styles.imageContainer} onPress={() => navigateToDetail(item.id)}>
-                        <Image
-                            source={{ uri: imageUri }}
-                            style={[styles.image, imageDimensions[index + halfLength] && { aspectRatio: imageDimensions[index + halfLength].width / imageDimensions[index + halfLength].height }]}
-                            resizeMode="contain" />
-                        <Text>{item.title}</Text>
-                    </TouchableOpacity>
+                    <Animatable.View
+                        key={index}
+                        style={styles.imageContainer}
+                        animation="fadeIn"
+                        duration={1000}
+                        delay={index * 400}
+                    >
+                        <TouchableOpacity activeOpacity={0.7} onPress={() => navigateToDetail(item.id)}>
+                            <Animatable.Image
+                                source={{ uri: imageUri }}
+                                style={[styles.image, imageDimensions[index + halfLength] && { aspectRatio: imageDimensions[index + halfLength].width / imageDimensions[index + halfLength].height }]}
+                                resizeMode="contain"
+                                animation="slideInUp"
+                                duration={500}
+                            />
+                            <View style={styles.userContainer}>
+                                <Image source={{ uri: process.env.API_URL + '/files/images/profiles/' + item.user.photoUrl }} style={styles.userImage} />
+                                <View>
+                                    <Text style={styles.title}>{item.user.fullName}</Text>
+                                    <Text style={styles.subtitle}>@{item.user.username}</Text>
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                    </Animatable.View>
                 );
             });
         }
@@ -158,6 +193,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#ffffff',
     },
     searchBar: {
+        position: 'sticky', // Menjadikan posisi komponen sticky
+        top: 0, // Mengatur komponen agar menempel di bagian atas layar
+        zIndex: 1,
         marginHorizontal: 15,
         borderRadius: 50,
         paddingHorizontal: 10,
@@ -210,7 +248,24 @@ const styles = StyleSheet.create({
         marginTop: 20,
     },
     title: {
-        paddingStart: 10,
-        fontSize: 13,
+        fontWeight: 'bold',
+        paddingTop: 5,
+        fontSize: 12,
+    },
+    subtitle: {
+        fontSize: 10,
+        fontWeight: 'light',
+    },
+    userContainer: {
+        marginTop: 5,
+        paddingStart: 7,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+    },
+    userImage: {
+        width: 30,
+        height: 30,
+        borderRadius: 15,
     }
 });
