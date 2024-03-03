@@ -1,10 +1,10 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-export default function Albums() {
+export default function Dompet() {
     return (
         <View>
-            <Text>Albums</Text>
+            <Text>ForYou</Text>
         </View>
     )
 }

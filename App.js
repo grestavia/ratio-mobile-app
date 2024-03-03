@@ -1,10 +1,10 @@
-import Library from "./screens/Library";
-import Albums from "./screens/Albums";
-import ForYou from "./screens/ForYou";
-import Search from "./screens/Search";
+import Upload from "./screens/Upload";
+import Dompet from "./screens/Dompet";
+import Profile from "./screens/Profile";
 import { Icon } from 'react-native-elements'
-import { Text, Platform, View } from "react-native";
+import { Text, Platform, View, StatusBar, SafeAreaView } from "react-native"; // tambahkan SafeAreaView
 import { NavigationContainer } from "@react-navigation/native";
+import { LibraryStack } from "./tools/StackNavigator";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 const Tab = createBottomTabNavigator();
@@ -42,51 +42,94 @@ const screenOptions = {
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Tab.Navigator screenOptions={screenOptions}>
-        <Tab.Screen
-          name="Library"
-          options={{
-            tabBarIcon: ({ focused }) => {
-              return (
-                <View style={tabIconStyle}>
-                  <Icon
-                    size={25}
-                    style={[tabIconBackground(focused)]}
-                    name="photo-library"
-                    type="material"
-                    color={focused ? "#003502" : "#444746"}
-                  />
-                  <Text style={tabTextStyle}>Beranda</Text>
-                </View>
-              );
-            },
-          }}
-          component={Library}
-        />
-        <Tab.Screen
-          name="For You"
-          options={{
-            tabBarIcon: ({ focused }) => {
-              return (
-                <View style={tabIconStyle}>
-                  <Icon
-                    size={25}
-                    style={[tabIconBackground(focused)]}
-                    name="wallet"
-                    type="material"
-                    color={focused ? "#003502" : "#444746"}
-                  />
-                  <Text style={tabTextStyle}>Dompet</Text>
-                </View>
-              );
-            },
-          }}
-          component={ForYou}
-        />
-        <Tab.Screen name="Albums" component={Albums} />
-        <Tab.Screen name="Search" component={Search} />
-      </Tab.Navigator>
-    </NavigationContainer>
+    <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
+      <NavigationContainer>
+        <Tab.Navigator screenOptions={screenOptions}>
+          <Tab.Screen
+            name="Library"
+            options={{
+              tabBarIcon: ({ focused }) => {
+                return (
+                  <View style={tabIconStyle}>
+                    <Icon
+                      size={25}
+                      style={[tabIconBackground(focused)]}
+                      name="photo-library"
+                      type="material"
+                      color={focused ? "#003502" : "#444746"}
+                    />
+                    <Text style={tabTextStyle}>Beranda</Text>
+                  </View>
+                );
+              },
+            }}
+            component={LibraryStack}
+          />
+          <Tab.Screen
+            name="Dompet"
+            options={{
+              tabBarIcon: ({ focused }) => {
+                return (
+                  <View style={tabIconStyle}>
+                    <Icon
+                      size={25}
+                      style={[tabIconBackground(focused)]}
+                      name="wallet"
+                      type="material"
+                      color={focused ? "#003502" : "#444746"}
+                    />
+                    <Text style={tabTextStyle}>Dompet</Text>
+                  </View>
+                );
+              },
+            }}
+            component={Dompet}
+          />
+          <Tab.Screen
+            name="Albums"
+            component={Upload}
+            options={
+              {
+                tabBarIcon: ({ focused }) => {
+                  return (
+                    <View style={tabIconStyle}>
+                      <Icon
+                        size={25}
+                        style={[tabIconBackground(focused)]}
+                        name="add-photo-alternate"
+                        type="material"
+                        color={focused ? "#003502" : "#444746"}
+                      />
+                      <Text style={tabTextStyle}>Unggah</Text>
+                    </View>
+                  );
+                },
+              }
+            } />
+          <Tab.Screen
+            name="Search"
+            component={Profile}
+            options={
+              {
+                tabBarIcon: ({ focused }) => {
+                  return (
+                    <View style={tabIconStyle}>
+                      <Icon
+                        size={25}
+                        style={[tabIconBackground(focused)]}
+                        name="person"
+                        type="material"
+                        color={focused ? "#003502" : "#444746"}
+                      />
+                      <Text style={tabTextStyle}>Profil</Text>
+                    </View>
+                  );
+                },
+              }
+            }
+          />
+        </Tab.Navigator>
+      </NavigationContainer>
+    </SafeAreaView>
   );
 }

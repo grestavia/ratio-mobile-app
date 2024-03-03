@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, View, Text, TextInput, Image, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, TextInput, Image, TouchableOpacity, ActivityIndicator, StyleSheet, RefreshControl } from 'react-native';
 import axios from 'axios';
 import { Icon } from 'react-native-elements'
+import { useNavigation } from '@react-navigation/native';
 
 export default function Home() {
     const [search, setSearch] = useState('');
     const [images, setImages] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [imageDimensions, setImageDimensions] = useState([]);
+
+    const navigation = useNavigation();
 
     useEffect(() => {
         fetchImages();
@@ -21,43 +26,105 @@ export default function Home() {
                 },
             });
             setImages(response.data.data);
+            setImageDimensions([]); // Reset dimensions when fetching new images
         } catch (error) {
             console.error('Error fetching images:', error);
         } finally {
             setLoading(false);
+            setIsRefreshing(false);
         }
     };
+
+    useEffect(() => {
+        if (images.length > 0) {
+            images.forEach((item, index) => {
+                Image.getSize(process.env.API_URL + '/files/images/photos/' + item.locationFile, (width, height) => {
+                    setImageDimensions(prevDimensions => [...prevDimensions, { width, height }]);
+                })
+            })
+        }
+    }, [images]);
 
     const handleSearch = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`https://8x62n0vs-5000.asse.devtunnels.ms/photos?title=${encodeURIComponent(search)}`, {
+            const response = await axios.get(process.env.API_URL + `/photos?title=${encodeURIComponent(search)}`, {
                 headers: {
                     Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyZGEzNmQ1NC1iNjFmLTQ4YTctOGEzOS01YjhkNTRiMGY3MGYiLCJpYXQiOjE3MDkzODgyMDl9.93ueZkm3a2LUCAFWDFBb_IxI2FgS1geznmOGQjuMEn8',
                 },
             });
             setImages(response.data.data);
+            setImageDimensions([]);
         } catch (error) {
             console.error('Error searching images:', error);
         } finally {
             setLoading(false);
+            setIsRefreshing(false);
         }
     };
 
-    const renderImages = () => {
-        return images.map((item, index) => {
-            const imageUri = 'https://8x62n0vs-5000.asse.devtunnels.ms/files/images/photos/' + item.locationFile;
-            return (
-                <TouchableOpacity key={index} style={styles.imageContainer}>
-                    <Image source={{ uri: imageUri }} style={styles.image} />
-                    <Text style={styles.title}>{item.title}</Text>
-                </TouchableOpacity>
-            );
-        });
+    const renderLeftImages = () => {
+        if (imageDimensions.length > 0) {
+            const halfLength = Math.ceil(images.length / 2);
+            const leftImages = images.slice(0, halfLength);
+            return leftImages.map((item, index) => {
+                const imageUri = process.env.API_URL + '/files/images/photos/' + item.locationFile;
+                return (
+                    <TouchableOpacity key={index} style={styles.imageContainer} onPress={() => navigateToDetail(item.id)}>
+                        <Image
+                            source={{ uri: imageUri }}
+                            style={[styles.image, imageDimensions[index] && { aspectRatio: imageDimensions[index].width / imageDimensions[index].height }]}
+                            resizeMode="contain" />
+                        <Text>{item.title}</Text>
+                    </TouchableOpacity>
+                );
+            });
+        }
+    };
+
+    const renderRightImages = () => {
+        if (imageDimensions.length > 0) {
+            const halfLength = Math.ceil(images.length / 2);
+            const rightImages = images.slice(halfLength);
+            return rightImages.map((item, index) => {
+                const imageUri = process.env.API_URL + '/files/images/photos/' + item.locationFile;
+                return (
+                    <TouchableOpacity key={index} style={styles.imageContainer} onPress={() => navigateToDetail(item.id)}>
+                        <Image
+                            source={{ uri: imageUri }}
+                            style={[styles.image, imageDimensions[index + halfLength] && { aspectRatio: imageDimensions[index + halfLength].width / imageDimensions[index + halfLength].height }]}
+                            resizeMode="contain" />
+                        <Text>{item.title}</Text>
+                    </TouchableOpacity>
+                );
+            });
+        }
+    };
+
+    const navigateToDetail = (photoId) => {
+        navigation.navigate('DetailPost', { photoId: photoId });
+    };
+
+    const handleScroll = (event) => {
+        const offsetY = event.nativeEvent.contentOffset.y;
+        if (offsetY === 5 && !isRefreshing) {
+            setIsRefreshing(true);
+            fetchImages();
+        }
     };
 
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView
+            style={styles.container}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            refreshControl={
+                <RefreshControl
+                    refreshing={isRefreshing}
+                    onRefresh={fetchImages}
+                />
+            }
+        >
             <View style={styles.searchBar}>
                 <View style={styles.separate}>
                     <Icon name="search" type="material" color="#003502" />
@@ -70,10 +137,15 @@ export default function Home() {
                 </View>
             </View>
             {loading ? (
-                <ActivityIndicator style={styles.loader} size="large" color="#0000ff" />
+                <ActivityIndicator style={styles.loader} size="large" color="#D9EDC8" />
             ) : (
-                <View style={styles.imageList}>
-                    {renderImages()}
+                <View style={styles.row}>
+                    <View style={styles.imageList}>
+                        {renderLeftImages()}
+                    </View>
+                    <View style={styles.imageList}>
+                        {renderRightImages()}
+                    </View>
                 </View>
             )}
         </ScrollView>
@@ -89,7 +161,6 @@ const styles = StyleSheet.create({
         marginHorizontal: 15,
         borderRadius: 50,
         paddingHorizontal: 10,
-        marginTop: 40,
         backgroundColor: '#EEEFE6',
         flexDirection: 'row',
         alignItems: 'center',
@@ -115,20 +186,23 @@ const styles = StyleSheet.create({
         color: '#ffffff',
         fontWeight: 'bold',
     },
-    imageList: {
+    row: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
+        width: '100%',
         justifyContent: 'space-between',
+    },
+    imageList: {
+        flexDirection: 'column',
         paddingHorizontal: 5,
         marginBottom: 80,
+        flex: 1,
+        marginHorizontal: 0,
     },
     imageContainer: {
-        width: '49%',
-        aspectRatio: 1,
-        marginVertical: 5,
+        width: '100%',
+        marginVertical: 3,
     },
     image: {
-        flex: 1,
         borderRadius: 10,
         resizeMode: 'cover',
     },

@@ -1,10 +1,10 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-export default function ForYou() {
+export default function Upload() {
     return (
         <View>
-            <Text>ForYou</Text>
+            <Text>Albums</Text>
         </View>
     )
 }
