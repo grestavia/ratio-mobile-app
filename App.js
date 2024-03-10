@@ -4,7 +4,7 @@ import Profile from "./screens/Profile";
 import { Icon } from 'react-native-elements'
 import { Text, Platform, View, StatusBar, SafeAreaView } from "react-native"; // tambahkan SafeAreaView
 import { NavigationContainer } from "@react-navigation/native";
-import { LibraryStack } from "./tools/StackNavigator";
+import { PostStack } from "./tools/StackNavigator";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 const Tab = createBottomTabNavigator();
@@ -16,14 +16,14 @@ const tabIconStyle = {
 };
 
 const tabIconBackground = (focused) => ({
-  backgroundColor: focused ? "#D9EDC8" : "",
+  backgroundColor: focused ? "#07A081" : "",
   width: 60,
   paddingVertical: 3,
   borderRadius: 50,
 });
 
 const tabTextStyle = (focused) => ({
-  color: focused ? "#003502" : "#444746",
+  color: focused ? "#07A081" : "#000000",
 });
 
 const screenOptions = {
@@ -35,7 +35,7 @@ const screenOptions = {
     left: 0,
     right: 0,
     elevation: 0,
-    backgroundColor: "#F3FCF6",
+    backgroundColor: "#ffffff",
     height: 80,
   },
 };
@@ -44,9 +44,9 @@ export default function App() {
   return (
     <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
       <NavigationContainer>
-        <Tab.Navigator screenOptions={screenOptions}>
+        <Tab.Navigator screenOptions={screenOptions} keyboardHidesTabBar={true}>
           <Tab.Screen
-            name="Library"
+            name="PostPage"
             options={{
               tabBarIcon: ({ focused }) => {
                 return (
@@ -56,14 +56,14 @@ export default function App() {
                       style={[tabIconBackground(focused)]}
                       name="photo-library"
                       type="material"
-                      color={focused ? "#003502" : "#444746"}
+                      color={focused ? "white" : "#444746"}
                     />
                     <Text style={tabTextStyle}>Beranda</Text>
                   </View>
                 );
               },
             }}
-            component={LibraryStack}
+            component={PostStack}
           />
           <Tab.Screen
             name="Dompet"
@@ -76,7 +76,7 @@ export default function App() {
                       style={[tabIconBackground(focused)]}
                       name="wallet"
                       type="material"
-                      color={focused ? "#003502" : "#444746"}
+                      color={focused ? "white" : "#444746"}
                     />
                     <Text style={tabTextStyle}>Dompet</Text>
                   </View>
@@ -98,7 +98,7 @@ export default function App() {
                         style={[tabIconBackground(focused)]}
                         name="add-photo-alternate"
                         type="material"
-                        color={focused ? "#003502" : "#444746"}
+                        color={focused ? "white" : "#444746"}
                       />
                       <Text style={tabTextStyle}>Unggah</Text>
                     </View>
@@ -119,7 +119,7 @@ export default function App() {
                         style={[tabIconBackground(focused)]}
                         name="person"
                         type="material"
-                        color={focused ? "#003502" : "#444746"}
+                        color={focused ? "white" : "#444746"}
                       />
                       <Text style={tabTextStyle}>Profil</Text>
                     </View>
