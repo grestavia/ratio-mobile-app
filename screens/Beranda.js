@@ -14,22 +14,38 @@ export default function Home() {
 
     const navigation = useNavigation();
 
-    useEffect(() => {
-        fetchImages();
-    }, []);
-
     const fetchImages = async () => {
         setLoading(true);
+        setIsRefreshing(true);
         try {
-            const response = await axios.get(process.env.API_URL + `/photos?title=`, {
+            const response = await axios.get(process.env.API_URL + `/photos`, {
                 headers: {
-                    Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyZGEzNmQ1NC1iNjFmLTQ4YTctOGEzOS01YjhkNTRiMGY3MGYiLCJpYXQiOjE3MDkzODgyMDl9.93ueZkm3a2LUCAFWDFBb_IxI2FgS1geznmOGQjuMEn8',
+                    Authorization: `Bearer ${process.env.TOKEN}`,
+                },
+            });
+            setImages(response.data.data);
+            setImageDimensions([]);
+            setSearch('');
+        } catch (error) {
+            console.error('Error fetching images:', error);
+        } finally {
+            setLoading(false);
+            setIsRefreshing(false);
+        }
+    };
+
+    const handleSearch = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get(process.env.API_URL + `/photos?query=${encodeURIComponent(search)}`, {
+                headers: {
+                    Authorization: `Bearer ${process.env.TOKEN}`,
                 },
             });
             setImages(response.data.data);
             setImageDimensions([]);
         } catch (error) {
-            console.error('Error fetching images:', error);
+            console.error('Error searching images:', error);
         } finally {
             setLoading(false);
             setIsRefreshing(false);
@@ -46,23 +62,14 @@ export default function Home() {
         }
     }, [images]);
 
-    const handleSearch = async () => {
-        setLoading(true);
-        try {
-            const response = await axios.get(process.env.API_URL + `/photos?title=${encodeURIComponent(search)}`, {
-                headers: {
-                    Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyZGEzNmQ1NC1iNjFmLTQ4YTctOGEzOS01YjhkNTRiMGY3MGYiLCJpYXQiOjE3MDkzODgyMDl9.93ueZkm3a2LUCAFWDFBb_IxI2FgS1geznmOGQjuMEn8',
-                },
-            });
-            setImages(response.data.data);
-            setImageDimensions([]);
-        } catch (error) {
-            console.error('Error searching images:', error);
-        } finally {
-            setLoading(false);
-            setIsRefreshing(false);
+
+    useEffect(() => {
+        if (search !== '') {
+            handleSearch();
+        } else {
+            fetchImages();
         }
-    };
+    }, [search]);
 
     const renderLeftImages = () => {
         if (imageDimensions.length > 0) {
@@ -145,45 +152,51 @@ export default function Home() {
         if (offsetY === 5 && !isRefreshing) {
             setIsRefreshing(true);
             fetchImages();
+            setSearch('');
         }
     };
 
     return (
-        <ScrollView
-            style={styles.container}
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-            refreshControl={
-                <RefreshControl
-                    refreshing={isRefreshing}
-                    onRefresh={fetchImages}
-                />
-            }
-        >
-            <View style={styles.searchBar}>
-                <View style={styles.separate}>
-                    <Icon name="search" type="material" color="#003502" />
-                    <TextInput
-                        style={styles.input}
-                        placeholder='Cari "Konser"'
-                        value={search}
-                        onChangeText={setSearch}
-                    />
+        <>
+            <View style={styles.header}>
+                <View style={styles.searchBar}>
+                    <View style={styles.separate}>
+                        <Icon name="search" type="material" color="#003502" />
+                        <TextInput
+                            style={styles.input}
+                            placeholder='Cari "Konser"'
+                            value={search}
+                            onChangeText={setSearch}
+                            onSubmitEditing={handleSearch}
+                        />
+                    </View>
                 </View>
             </View>
-            {loading ? (
-                <ActivityIndicator style={styles.loader} size="large" color="#D9EDC8" />
-            ) : (
-                <View style={styles.row}>
-                    <View style={styles.imageList}>
-                        {renderLeftImages()}
+            <ScrollView
+                style={styles.container}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={isRefreshing}
+                        onRefresh={fetchImages}
+                    />
+                }
+            >
+                {loading ? (
+                    <ActivityIndicator style={styles.loader} size="large" color="#D9EDC8" />
+                ) : (
+                    <View style={styles.row}>
+                        <View style={styles.imageList}>
+                            {renderLeftImages()}
+                        </View>
+                        <View style={styles.imageList}>
+                            {renderRightImages()}
+                        </View>
                     </View>
-                    <View style={styles.imageList}>
-                        {renderRightImages()}
-                    </View>
-                </View>
-            )}
-        </ScrollView>
+                )}
+            </ScrollView>
+        </>
     );
 }
 
@@ -192,10 +205,13 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#ffffff',
     },
-    searchBar: {
-        position: 'sticky', // Menjadikan posisi komponen sticky
-        top: 0, // Mengatur komponen agar menempel di bagian atas layar
+    header: {
+        position: 'sticky',
+        top: 0,
         zIndex: 1,
+        backgroundColor: '#ffffff',
+    },
+    searchBar: {
         marginHorizontal: 15,
         borderRadius: 50,
         paddingHorizontal: 10,
